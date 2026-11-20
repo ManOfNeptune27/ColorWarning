@@ -6,7 +6,7 @@ The check is meant for pull requests. A command will read CSS variables, a Tailw
 
 ## Status
 
-This repository is the package shell. Color parsing, simulation, and the command are not implemented yet.
+Color parsing and the WCAG contrast ratio are in place. Simulation and the command are not implemented yet.
 
 ## Requirements
 
