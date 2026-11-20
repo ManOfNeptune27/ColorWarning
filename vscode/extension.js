@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { editorDiagnostics, editorWatches, findBaselineDirectory } from "../dist/editor-diagnostics.js";
+import { editorDiagnostics, editorWatches, findBaselineDirectory } from "./lib/editor-diagnostics.js";
 
 const collection = vscode.languages.createDiagnosticCollection("colorwarning");
 

@@ -126,6 +126,8 @@ npm run build
 
 Open the Command Palette and run **Developer: Install Extension from Location...**. Choose the `vscode` folder. To try it in a development window, open this repo and press F5.
 
+The Marketplace package is `vscode/colorwarning-0.0.1.vsix`, published as `ConnerBrunner.colorwarning`. Upload that file from the publisher page.
+
 ## License
 
 [MIT](LICENSE)

@@ -1,4 +1,4 @@
-import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { dirname } from "node:path";
@@ -79,5 +79,16 @@ describe("editor diagnostics", () => {
     expect(editorWatches("styles.scss")).toBe(false);
     expect(findBaselineDirectory(join(workspace(), "theme.css"))).toBeNull();
     expect(editorDiagnostics(join(workspace(), "notes.md"), redOnBlack, null)).toEqual([]);
+  });
+
+  test("the Marketplace package points at ConnerBrunner and the packed checker", () => {
+    const manifest = JSON.parse(readFileSync(join(root, "vscode/package.json"), "utf8"));
+    const extension = readFileSync(join(root, "vscode/extension.js"), "utf8");
+    expect(manifest.publisher).toBe("ConnerBrunner");
+    expect(manifest.version).toBe("0.0.1");
+    expect(extension).toContain("./lib/editor-diagnostics.js");
+    expect(existsSync(join(root, "vscode/lib/editor-diagnostics.js"))).toBe(true);
+    expect(existsSync(join(root, "vscode/README.md"))).toBe(true);
+    expect(existsSync(join(root, "vscode/LICENSE"))).toBe(true);
   });
 });

@@ -2,8 +2,8 @@
   "name": "colorwarning",
   "displayName": "ColorWarning",
   "description": "Warns when website colors fail for people with color-vision deficiency.",
-  "version": "0.0.0",
-  "publisher": "ManOfNeptune27",
+  "version": "0.0.1",
+  "publisher": "ConnerBrunner",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -20,5 +20,8 @@
     "onLanguage:typescript"
   ],
   "main": "./extension.js",
-  "type": "module"
+  "type": "module",
+  "dependencies": {
+    "postcss": "^8.5.33"
+  }
 }

@@ -18,7 +18,7 @@
     "./storybook": "./storybook/preset.js"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
+    "build": "tsc -p tsconfig.build.json && node scripts/copy-vscode-checker.mjs",
     "typecheck": "tsc --noEmit",
     "test": "npm run build && vitest run",
     "colorwarning": "node dist/cli.js"
