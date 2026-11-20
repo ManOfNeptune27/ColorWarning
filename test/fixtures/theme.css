@@ -1,0 +1,40 @@
+:root {
+  --ink: #111111;
+  --paper: #ffffff;
+  --success: #2e7d32;
+  --error: #d32f2f;
+  --danger: var(--no-such-token);
+}
+
+.ok {
+  color: var(--ink);
+  background-color: var(--paper);
+}
+
+.red-on-black {
+  color: #ff0000;
+  background-color: #000000;
+}
+
+.broken {
+  color: var(--nope);
+  background-color: white;
+}
+
+.fade {
+  color: white;
+  background: linear-gradient(#000, #fff);
+}
+
+.photo {
+  color: black;
+  background: url("/hero.png");
+}
+
+.inherit {
+  color: #111111;
+}
+
+body {
+  background-color: #ffffff;
+}

@@ -6,7 +6,7 @@ The check is meant for pull requests. A command will read CSS variables, a Tailw
 
 ## Status
 
-Color parsing, the WCAG contrast ratio, and the color-vision verdicts are in place. Reading project files and the command are not implemented yet.
+Color parsing, contrast, color-vision verdicts, and file reading are in place. The command is not implemented yet. CSS custom properties, a static Tailwind theme, and a JSON token file can be read into text-on-background pairs. Gradients, images, and variables that cannot be resolved stay unchecked.
 
 ## Requirements
 

@@ -17,3 +17,16 @@ export {
   type CvdCollision,
   type CvdContrast,
 } from "./verdicts.js";
+export {
+  extractCss,
+  extractFile,
+  extractSource,
+  extractTailwindTheme,
+  extractTokens,
+  type CheckedUse,
+  type ColorUse,
+  type SourceToken,
+  type UncheckedReason,
+  type UncheckedUse,
+  type UseKind,
+} from "./extract.js";
