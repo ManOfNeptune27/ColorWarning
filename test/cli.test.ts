@@ -21,6 +21,8 @@ describe("colorwarning check", () => {
       secondName: null,
       first: "#ff0000",
       second: "#000000",
+      firstPaint: { r: 1, g: 0, b: 0, alpha: 1 },
+      secondPaint: { r: 0, g: 0, b: 0, alpha: 1 },
       verdict: "cvd-contrast",
       normal: 5.252,
       simulated: 3.285,

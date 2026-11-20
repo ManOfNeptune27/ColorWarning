@@ -1,10 +1,11 @@
 #!/usr/bin/env node
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync, unlinkSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { BASELINE_FILENAME, entryFromUse, fileKey, loadBaseline, saveBaseline, takeBaseline } from "./baseline.js";
 import { extractSource, type ColorUse } from "./extract.js";
 import { ignoredLines } from "./ignore.js";
+import { renderSwatch, SWATCH_FILENAME, type SwatchPair } from "./swatch.js";
 
 export type CliResult = {
   exitCode: number;
@@ -12,21 +13,23 @@ export type CliResult = {
   errorOutput: string;
 };
 
-const usage = "usage: colorwarning check <file>...\n       colorwarning baseline <file>...\n";
+const usage =
+  "usage: colorwarning check <file>...\n       colorwarning baseline <file>...\n       colorwarning swatch <file>...\n";
 
-/** Run `colorwarning check` or `colorwarning baseline`. Findings fail the check. Unchecked colors do not. */
+/** Run `colorwarning check`, `baseline`, or `swatch`. Findings fail the check. Unchecked colors do not. */
 export function runCli(args: readonly string[], options?: { cwd?: string }): CliResult {
   const command = args[0];
   const filenames = args.slice(1);
-  if ((command !== "check" && command !== "baseline") || filenames.length === 0) {
+  if ((command !== "check" && command !== "baseline" && command !== "swatch") || filenames.length === 0) {
     return { exitCode: 2, output: "", errorOutput: usage };
   }
 
   const cwd = options?.cwd ?? process.cwd();
   const collected = collect(filenames, cwd);
-  if (collected.errors.length > 0 && command === "baseline") {
+  if (collected.errors.length > 0 && (command === "baseline" || command === "swatch")) {
     return { exitCode: 2, output: "", errorOutput: `${collected.errors.join("\n")}\n` };
   }
+  if (command === "swatch") return writeSwatch(cwd, collected);
   if (command === "baseline") {
     saveBaseline(cwd, collected.entries);
     return {
@@ -69,12 +72,55 @@ export function runCli(args: readonly string[], options?: { cwd?: string }): Cli
   };
 }
 
+type CollectedItem = { filename: string; block: string; use: ColorUse; entry: ReturnType<typeof entryFromUse> };
+
 type Collected = {
-  items: Array<{ block: string; use: ColorUse; entry: ReturnType<typeof entryFromUse> }>;
+  items: CollectedItem[];
   entries: ReturnType<typeof entryFromUse>[];
   errors: string[];
   ignored: number;
 };
+
+function writeSwatch(cwd: string, collected: Collected): CliResult {
+  let baseline: Map<string, number> | null;
+  try {
+    baseline = loadBaseline(cwd);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    return { exitCode: 2, output: "", errorOutput: `${message}\n` };
+  }
+
+  const pairs: SwatchPair[] = [];
+  for (const item of collected.items) {
+    if (takeBaseline(baseline, item.entry)) continue;
+    const pair = swatchPair(item);
+    if (pair !== null) pairs.push(pair);
+  }
+
+  const target = path.join(cwd, SWATCH_FILENAME);
+  if (pairs.length === 0) {
+    if (existsSync(target)) unlinkSync(target);
+    return { exitCode: 0, output: "no swatch\n", errorOutput: "" };
+  }
+  writeFileSync(target, renderSwatch(pairs));
+  const noun = pairs.length === 1 ? "pair" : "pairs";
+  return { exitCode: 0, output: `wrote ${SWATCH_FILENAME} (${pairs.length} ${noun})\n`, errorOutput: "" };
+}
+
+function swatchPair(item: CollectedItem): SwatchPair | null {
+  const use = item.use;
+  if (use.status !== "checked") return null;
+  if (use.deficiency === null) return null;
+  if (use.verdict !== "cvd-contrast" && use.verdict !== "cvd-collision") return null;
+  const place = label(use);
+  return {
+    kind: use.kind,
+    label: `${item.filename}:${use.line}${place.length > 0 ? ` ${place}` : ""}`,
+    deficiency: use.deficiency,
+    first: use.firstPaint,
+    second: use.secondPaint,
+  };
+}
 
 function collect(filenames: readonly string[], cwd: string): Collected {
   const items: Collected["items"] = [];
@@ -106,7 +152,7 @@ function collect(filenames: readonly string[], cwd: string): Collected {
       }
       const entry = entryFromUse(key, use);
       entries.push(entry);
-      items.push({ block, use, entry });
+      items.push({ filename, block, use, entry });
     }
   }
 

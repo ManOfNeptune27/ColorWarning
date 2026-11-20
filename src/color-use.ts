@@ -18,6 +18,9 @@ export type CheckedUse = {
   secondName: string | null;
   first: string;
   second: string;
+  /** Opaque colors the verdict measured. `first` and `second` keep the source text. */
+  firstPaint: Srgb;
+  secondPaint: Srgb;
   verdict: "pass" | "contrast" | "cvd-contrast" | "cvd-collision";
   normal: number;
   simulated: number | null;
@@ -162,6 +165,8 @@ export function textOnBackground(input: {
     secondName: input.secondName,
     first: input.first,
     second: input.second,
+    firstPaint: painted,
+    secondPaint: input.background,
   };
 
   if (!meetsAaNormalText(normal)) {
@@ -191,6 +196,8 @@ function statusPair(left: SourceToken, leftColor: Srgb, right: SourceToken, righ
     secondName: right.name,
     first: left.value,
     second: right.value,
+    firstPaint: leftColor,
+    secondPaint: rightColor,
     verdict: finding === null ? "pass" : "cvd-collision",
     normal: finding?.normalDistance ?? oklabDistance(leftColor, rightColor),
     simulated: finding?.simulatedDistance ?? null,
