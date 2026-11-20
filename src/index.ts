@@ -8,3 +8,12 @@ export {
   meetsAaNormalText,
   relativeLuminance,
 } from "./contrast.js";
+export { deficiencies, oklabDistance, simulate, type Deficiency } from "./simulate.js";
+export {
+  COLLAPSED_OKLAB,
+  DISTINCT_OKLAB,
+  cvdCollision,
+  cvdContrast,
+  type CvdCollision,
+  type CvdContrast,
+} from "./verdicts.js";

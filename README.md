@@ -6,7 +6,7 @@ The check is meant for pull requests. A command will read CSS variables, a Tailw
 
 ## Status
 
-Color parsing and the WCAG contrast ratio are in place. Simulation and the command are not implemented yet.
+Color parsing, the WCAG contrast ratio, and the color-vision verdicts are in place. Reading project files and the command are not implemented yet.
 
 ## Requirements
 
