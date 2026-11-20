@@ -6,7 +6,7 @@ The check is meant for pull requests. A command will read CSS variables, a Tailw
 
 ## Status
 
-Color parsing, contrast, color-vision verdicts, and file reading are in place. The command is not implemented yet. CSS custom properties, a static Tailwind theme, and a JSON token file can be read into text-on-background pairs. Gradients, images, and variables that cannot be resolved stay unchecked.
+The `colorwarning check` command reads a stylesheet, a static Tailwind theme, or a JSON token file. Passing pairs stay quiet. A finding prints the file, the line, both colors, the normal ratio, the simulated ratio, and the deficiency. Gradients, images, and unknown variables are unchecked and do not fail the command.
 
 ## Requirements
 
@@ -18,7 +18,11 @@ Node.js 22 or newer.
 npm install
 npm test
 npm run typecheck
+npm run build
+npm run colorwarning -- check path/to/file.css
 ```
+
+`npm run colorwarning -- check <file>` is the local command. After this package is installed, the same command is `npx colorwarning check <file>`. The command exits 1 when it finds a contrast or color-vision problem, and 0 when it does not.
 
 ## License
 

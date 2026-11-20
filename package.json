@@ -8,9 +8,14 @@
   "engines": {
     "node": ">=22"
   },
+  "bin": {
+    "colorwarning": "dist/cli.js"
+  },
   "scripts": {
+    "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "npm run build && vitest run",
+    "colorwarning": "node dist/cli.js"
   },
   "devDependencies": {
     "@types/node": "^22.20.5",
