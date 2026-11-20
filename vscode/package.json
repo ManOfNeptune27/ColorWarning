@@ -1,0 +1,24 @@
+{
+  "name": "colorwarning",
+  "displayName": "ColorWarning",
+  "description": "Warns when website colors fail for people with color-vision deficiency.",
+  "version": "0.0.0",
+  "publisher": "ManOfNeptune27",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ManOfNeptune27/ColorWarning"
+  },
+  "engines": {
+    "vscode": "^1.96.0"
+  },
+  "categories": ["Linters"],
+  "activationEvents": [
+    "onLanguage:css",
+    "onLanguage:json",
+    "onLanguage:javascript",
+    "onLanguage:typescript"
+  ],
+  "main": "./extension.js",
+  "type": "module"
+}

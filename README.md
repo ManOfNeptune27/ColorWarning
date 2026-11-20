@@ -2,7 +2,7 @@
 
 ColorWarning checks website colors for combinations that are hard to read, or hard to tell apart, for people with color-vision deficiency.
 
-The check is meant for pull requests. A command will read CSS variables, a Tailwind theme, or a token file. A GitHub Action can post a picture of the original pair and the same pair under simulation. An editor plugin comes later and will use the same results.
+The check is meant for pull requests. A command reads CSS variables, a Tailwind theme, or a token file. A GitHub Action can post a picture of the original pair and the same pair under simulation. The VS Code extension warns for those same color-vision pairs.
 
 ## Status
 
@@ -17,6 +17,8 @@ The GitHub Action runs that check on a pull request. A finding adds or updates o
 `colorwarning scan` reads published colors from Bootstrap, Material, Radix, and shadcn and prints the same report as [SCAN.md](SCAN.md). The command exits 0. It publishes the report. It does not gate a build.
 
 Stylelint rule `colorwarning/color-vision` warns for the same two color-vision problems. The warning does not fail the Stylelint run. `colorwarning check` still exits 1.
+
+The VS Code extension warns in the editor for those same two problems. A baselined pair stays quiet, and so does a `colorwarning-ignore` comment.
 
 The Storybook panel shows each of those findings twice: the original pair, and the same pair under simulation. Pass the story's CSS in `parameters.colorwarning`. The panel does not fail the Storybook build.
 
@@ -108,6 +110,21 @@ const meta = {
 ```
 
 `parameters.colorwarning` can also be `{ css: "..." }`. Set `{ disable: true }` to hide the panel for one story.
+
+## VS Code
+
+The extension reads a stylesheet, a static Tailwind theme, or a JSON token file in the editor. It warns when text passes ordinary contrast and fails after simulation, and when status colors collide after simulation. The warning highlights the color. Passing pairs, ordinary contrast failures, gradients, and unknown variables stay quiet.
+
+A `colorwarning-ignore` comment leaves a pair out. The nearest `colorwarning-baseline.json`, walking up from the file, leaves those pairs out too. The extension does not change the file, and it does not repaint the page.
+
+Build first, then install the `vscode` folder from this repo. VS Code 1.96 or newer.
+
+```bash
+npm install
+npm run build
+```
+
+Open the Command Palette and run **Developer: Install Extension from Location...**. Choose the `vscode` folder. To try it in a development window, open this repo and press F5.
 
 ## License
 
