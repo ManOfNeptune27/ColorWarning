@@ -1,6 +1,10 @@
 #!/usr/bin/env node
-import { extractFile, type ColorUse } from "./extract.js";
+import { readFileSync } from "node:fs";
+import path from "node:path";
 import { pathToFileURL } from "node:url";
+import { BASELINE_FILENAME, entryFromUse, fileKey, loadBaseline, saveBaseline, takeBaseline } from "./baseline.js";
+import { extractSource, type ColorUse } from "./extract.js";
+import { ignoredLines } from "./ignore.js";
 
 export type CliResult = {
   exitCode: number;
@@ -8,51 +12,116 @@ export type CliResult = {
   errorOutput: string;
 };
 
-/** Run `colorwarning check <file>...`. Findings fail the command. Unchecked colors do not. */
-export function runCli(args: readonly string[]): CliResult {
-  if (args[0] !== "check" || args.length < 2) {
+const usage = "usage: colorwarning check <file>...\n       colorwarning baseline <file>...\n";
+
+/** Run `colorwarning check` or `colorwarning baseline`. Findings fail the check. Unchecked colors do not. */
+export function runCli(args: readonly string[], options?: { cwd?: string }): CliResult {
+  const command = args[0];
+  const filenames = args.slice(1);
+  if ((command !== "check" && command !== "baseline") || filenames.length === 0) {
+    return { exitCode: 2, output: "", errorOutput: usage };
+  }
+
+  const cwd = options?.cwd ?? process.cwd();
+  const collected = collect(filenames, cwd);
+  if (collected.errors.length > 0 && command === "baseline") {
+    return { exitCode: 2, output: "", errorOutput: `${collected.errors.join("\n")}\n` };
+  }
+  if (command === "baseline") {
+    saveBaseline(cwd, collected.entries);
     return {
-      exitCode: 2,
-      output: "",
-      errorOutput: "usage: colorwarning check <file>...\n",
+      exitCode: 0,
+      output: `wrote ${BASELINE_FILENAME} (${collected.entries.length} ${collected.entries.length === 1 ? "entry" : "entries"})\n`,
+      errorOutput: "",
     };
   }
 
+  let baseline: Map<string, number> | null;
+  try {
+    baseline = loadBaseline(cwd);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    return { exitCode: 2, output: "", errorOutput: `${message}\n` };
+  }
+
   const blocks: string[] = [];
-  const errors: string[] = [];
   let findings = 0;
   let unchecked = 0;
+  let baselined = 0;
+  for (const item of collected.items) {
+    if (takeBaseline(baseline, item.entry)) {
+      baselined += 1;
+      continue;
+    }
+    blocks.push(item.block);
+    if (item.use.status === "unchecked") unchecked += 1;
+    else findings += 1;
+  }
 
-  for (const filename of args.slice(1)) {
+  const summary = summarize(findings, unchecked, baselined, collected.ignored, collected.errors.length);
+  const body = blocks.join("\n\n");
+  const output = body.length > 0 ? `${body}\n\n${summary}\n` : `${summary}\n`;
+  const exitCode = collected.errors.length > 0 ? 2 : findings > 0 ? 1 : 0;
+  return {
+    exitCode,
+    output,
+    errorOutput: collected.errors.length > 0 ? `${collected.errors.join("\n")}\n` : "",
+  };
+}
+
+type Collected = {
+  items: Array<{ block: string; use: ColorUse; entry: ReturnType<typeof entryFromUse> }>;
+  entries: ReturnType<typeof entryFromUse>[];
+  errors: string[];
+  ignored: number;
+};
+
+function collect(filenames: readonly string[], cwd: string): Collected {
+  const items: Collected["items"] = [];
+  const entries: Collected["entries"] = [];
+  const errors: string[] = [];
+  let ignored = 0;
+
+  for (const filename of filenames) {
     let uses: ColorUse[];
+    let skip: Set<number>;
     try {
-      uses = extractFile(filename);
+      const absolute = path.resolve(cwd, filename);
+      const source = readFileSync(absolute, "utf8");
+      uses = extractSource(absolute, source);
+      skip = ignoredLines(source);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       errors.push(`${filename}: ${message}`);
       continue;
     }
+
+    const key = fileKey(filename, cwd);
     for (const use of uses) {
       const block = formatFinding(filename, use);
       if (block === null) continue;
-      blocks.push(block);
-      if (use.status === "unchecked") unchecked += 1;
-      else findings += 1;
+      if (skip.has(use.line)) {
+        ignored += 1;
+        continue;
+      }
+      const entry = entryFromUse(key, use);
+      entries.push(entry);
+      items.push({ block, use, entry });
     }
   }
 
-  const summary =
-    findings === 0 && unchecked === 0 && errors.length === 0
-      ? "no findings"
-      : `${count(findings, "finding")}, ${count(unchecked, "unchecked item")}`;
-  const body = blocks.join("\n\n");
-  const output = body.length > 0 ? `${body}\n\n${summary}\n` : `${summary}\n`;
-  const exitCode = errors.length > 0 ? 2 : findings > 0 ? 1 : 0;
-  return {
-    exitCode,
-    output,
-    errorOutput: errors.length > 0 ? `${errors.join("\n")}\n` : "",
-  };
+  return { items, entries, errors, ignored };
+}
+
+function summarize(findings: number, unchecked: number, baselined: number, ignored: number, errors: number): string {
+  const suppressed = [baselined > 0 ? `${baselined} baselined` : "", ignored > 0 ? `${ignored} ignored` : ""]
+    .filter((part) => part.length > 0)
+    .join(", ");
+  if (findings === 0 && unchecked === 0 && errors === 0) {
+    return suppressed.length > 0 ? `no new findings, ${suppressed}` : "no findings";
+  }
+  const summary = `${count(findings, "finding")}, ${count(unchecked, "unchecked item")}`;
+  return suppressed.length > 0 ? `${summary}, ${suppressed}` : summary;
 }
 
 export function formatFinding(filename: string, use: ColorUse): string | null {
