@@ -1,0 +1,29 @@
+name: ColorWarning
+description: Warn when website colors fail for people with color-vision deficiency
+inputs:
+  files:
+    description: Files to check, one path per line. Empty checks CSS files and Tailwind configs.
+    required: false
+    default: ""
+  token:
+    description: >
+      Token used to comment on the pull request. A fine-grained or classic personal
+      access token posts the swatch picture. The default Actions token posts the text.
+    required: false
+    default: ${{ github.token }}
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-node@v4
+      with:
+        node-version: 22
+    - name: Build ColorWarning
+      shell: bash
+      working-directory: ${{ github.action_path }}
+      run: npm ci && npm run build
+    - name: Check colors
+      shell: bash
+      env:
+        INPUT_FILES: ${{ inputs.files }}
+        INPUT_TOKEN: ${{ inputs.token }}
+      run: node "$GITHUB_ACTION_PATH/dist/action.js"
