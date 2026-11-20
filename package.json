@@ -5,11 +5,16 @@
   "description": "Checks website colors for combinations that fail for people with color-vision deficiency.",
   "license": "MIT",
   "type": "module",
+  "keywords": ["stylelint-plugin"],
   "engines": {
     "node": ">=22"
   },
   "bin": {
     "colorwarning": "dist/cli.js"
+  },
+  "exports": {
+    ".": "./dist/index.js",
+    "./stylelint": "./dist/stylelint.js"
   },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
@@ -19,10 +24,14 @@
   },
   "devDependencies": {
     "@types/node": "^22.20.5",
+    "stylelint": "^16.26.1",
     "typescript": "^5.9.3",
     "vitest": "^3.2.4"
   },
   "dependencies": {
     "postcss": "^8.5.33"
+  },
+  "peerDependencies": {
+    "stylelint": "^16.0.0"
   }
 }

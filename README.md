@@ -16,6 +16,8 @@ The GitHub Action runs that check on a pull request. A finding adds or updates o
 
 `colorwarning scan` reads published colors from Bootstrap, Material, Radix, and shadcn and prints the same report as [SCAN.md](SCAN.md). The command exits 0. It publishes the report. It does not gate a build.
 
+Stylelint rule `colorwarning/color-vision` warns for the same two color-vision problems. The warning does not fail the Stylelint run. `colorwarning check` still exits 1.
+
 ## Requirements
 
 Node.js 22 or newer.
@@ -61,6 +63,23 @@ Leave `files` empty to check every CSS file and Tailwind config, skipping `node_
 ## Public scan
 
 [SCAN.md](SCAN.md) is the committed copy of `npm run colorwarning -- scan`. Bootstrap's success and danger colors collide under deuteranopia. Material's error and on-error stay apart. Radix names its scales by hue and step, so this check has no success or danger pair to compare. shadcn's default theme uses `oklch()`, which this check does not read yet.
+
+## Stylelint
+
+The rule reads a stylesheet the same way `colorwarning check` reads CSS. It warns when text passes ordinary contrast and fails after simulation, and when status colors collide after simulation. Passing pairs, ordinary contrast failures, gradients, and unknown variables stay quiet. A `colorwarning-ignore` comment leaves a pair out. A Stylelint disable comment does too.
+
+The warning stays a warning. Stylelint's severity option does not turn it into an error. Use `colorwarning check` when a finding should fail a command. Tailwind configs and JSON token files stay on that command. Stylelint only sees CSS.
+
+Stylelint 16 or newer.
+
+```js
+export default {
+  plugins: ["colorwarning/stylelint"],
+  rules: {
+    "colorwarning/color-vision": true,
+  },
+};
+```
 
 ## License
 
