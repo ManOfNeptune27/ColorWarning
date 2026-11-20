@@ -18,6 +18,8 @@ The GitHub Action runs that check on a pull request. A finding adds or updates o
 
 Stylelint rule `colorwarning/color-vision` warns for the same two color-vision problems. The warning does not fail the Stylelint run. `colorwarning check` still exits 1.
 
+The Storybook panel shows each of those findings twice: the original pair, and the same pair under simulation. Pass the story's CSS in `parameters.colorwarning`. The panel does not fail the Storybook build.
+
 ## Requirements
 
 Node.js 22 or newer.
@@ -80,6 +82,32 @@ export default {
   },
 };
 ```
+
+## Storybook
+
+Add `colorwarning/storybook` to the Storybook addons list. The panel reads the CSS for the open story. It draws text on its background, and status colors side by side. A `colorwarning-ignore` comment leaves that pair out. Passing pairs, ordinary contrast failures, and unknown variables stay quiet.
+
+The panel does not read computed colors from the canvas. Put the stylesheet, or the part the story uses, in the parameter. Storybook 9 or 10.
+
+```ts
+// .storybook/main.ts
+const config = {
+  addons: ["colorwarning/storybook"],
+};
+export default config;
+```
+
+```ts
+const meta = {
+  parameters: {
+    colorwarning: `
+      .label { color: #ff0000; background-color: #000000; }
+    `,
+  },
+};
+```
+
+`parameters.colorwarning` can also be `{ css: "..." }`. Set `{ disable: true }` to hide the panel for one story.
 
 ## License
 
