@@ -5,6 +5,7 @@ import { pathToFileURL } from "node:url";
 import { BASELINE_FILENAME, entryFromUse, fileKey, loadBaseline, saveBaseline, takeBaseline } from "./baseline.js";
 import { extractSource, type ColorUse } from "./extract.js";
 import { ignoredLines } from "./ignore.js";
+import { renderScan } from "./scan.js";
 import { renderSwatch, SWATCH_FILENAME, type SwatchPair } from "./swatch.js";
 
 export type CliResult = {
@@ -14,12 +15,16 @@ export type CliResult = {
 };
 
 const usage =
-  "usage: colorwarning check <file>...\n       colorwarning baseline <file>...\n       colorwarning swatch <file>...\n";
+  "usage: colorwarning check <file>...\n       colorwarning baseline <file>...\n       colorwarning swatch <file>...\n       colorwarning scan\n";
 
-/** Run `colorwarning check`, `baseline`, or `swatch`. Findings fail the check. Unchecked colors do not. */
+/** Run `colorwarning check`, `baseline`, `swatch`, or `scan`. Findings fail the check. Unchecked colors do not. */
 export function runCli(args: readonly string[], options?: { cwd?: string }): CliResult {
   const command = args[0];
   const filenames = args.slice(1);
+  if (command === "scan") {
+    if (filenames.length > 0) return { exitCode: 2, output: "", errorOutput: usage };
+    return { exitCode: 0, output: renderScan(), errorOutput: "" };
+  }
   if ((command !== "check" && command !== "baseline" && command !== "swatch") || filenames.length === 0) {
     return { exitCode: 2, output: "", errorOutput: usage };
   }

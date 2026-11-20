@@ -14,6 +14,8 @@ The `colorwarning check` command reads a stylesheet, a static Tailwind theme, or
 
 The GitHub Action runs that check on a pull request. A finding adds or updates one comment and does not fail the workflow. A fine-grained or classic personal access token posts the swatch picture. The default Actions token posts the text, because GitHub does not accept that token for images.
 
+`colorwarning scan` reads published colors from Bootstrap, Material, Radix, and shadcn and prints the same report as [SCAN.md](SCAN.md). The command exits 0. It publishes the report. It does not gate a build.
+
 ## Requirements
 
 Node.js 22 or newer.
@@ -28,6 +30,7 @@ npm run build
 npm run colorwarning -- check path/to/file.css
 npm run colorwarning -- baseline path/to/file.css
 npm run colorwarning -- swatch path/to/file.css
+npm run colorwarning -- scan
 ```
 
 `npm run colorwarning -- check <file>` is the local command. After this package is installed, the same command is `npx colorwarning check <file>`. The command exits 1 when it finds a new contrast or color-vision problem, and 0 when it does not. Baselined and ignored pairs do not fail the command.
@@ -54,6 +57,10 @@ jobs:
 ```
 
 Leave `files` empty to check every CSS file and Tailwind config, skipping `node_modules` and `dist`. Leave `token` unset to comment with the default Actions token. Set `token` to a fine-grained personal access token with pull request write access when the comment should include the swatch picture. A clean check removes the earlier comment.
+
+## Public scan
+
+[SCAN.md](SCAN.md) is the committed copy of `npm run colorwarning -- scan`. Bootstrap's success and danger colors collide under deuteranopia. Material's error and on-error stay apart. Radix names its scales by hue and step, so this check has no success or danger pair to compare. shadcn's default theme uses `oklch()`, which this check does not read yet.
 
 ## License
 
